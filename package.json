@@ -1,0 +1,26 @@
+{
+  "name": "mini-express",
+  "version": "1.0.0",
+  "description": "A minimalistic Express-like framework for Node.js",
+  "main": "dist/index.js",
+  "types": "types/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "keywords": [
+    "express",
+    "node",
+    "http",
+    "framework"
+  ],
+  "author": "Efraim Nabil",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.7.9"
+  },
+  "dependencies": {
+    "typescript": "^5.6.3"
+  }
+}
