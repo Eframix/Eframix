@@ -91,9 +91,8 @@ class Router {
         this.set("DELETE", url, handlers);
     }
 
-    public startServer(port: number, moviesData: any) {
+    public startServer(port: number) {
         const server = http.createServer(async (req: IncomingMessage, res: ServerResponse) => {
-            req.movies = moviesData;  
             req.params = {};
 
             await this.use(req, res);
