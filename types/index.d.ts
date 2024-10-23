@@ -1,15 +1,13 @@
 import { IncomingMessage, ServerResponse } from "http";
 
 declare module 'http' {
-    export interface IncomingMessage {
+    interface IncomingMessage {
         params: { [key: string]: string };
         body: { [key: string]: any };
     }
 }
 
-export interface Handler {
-    (req: IncomingMessage, res: ServerResponse, next: () => void): void;
-}
+export type Handler = (req: IncomingMessage, res: ServerResponse, next: () => void) => void;
 
 export class Router {
     constructor(routers?: Router[]);
