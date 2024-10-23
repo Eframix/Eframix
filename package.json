@@ -1,9 +1,9 @@
 {
   "name": "express-minimal",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A minimalistic Express-like framework for Node.js",
   "main": "dist/index.js",
-  "types": "types/index.d.ts",
+  "types": "dist/types/index.d.ts",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",

@@ -87,9 +87,8 @@ class Router {
     delete(url, ...handlers) {
         this.set("DELETE", url, handlers);
     }
-    startServer(port, moviesData) {
+    startServer(port) {
         const server = http.createServer((req, res) => __awaiter(this, void 0, void 0, function* () {
-            req.movies = moviesData;
             req.params = {};
             yield this.use(req, res);
         }));
