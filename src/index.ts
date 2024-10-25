@@ -11,7 +11,7 @@ export interface Endpoint {
 declare module 'http' {
     interface IncomingMessage {
         params: { [key: string]: string };
-        body: { [key: string]: any };
+        body: any;
     }
 }
 
@@ -27,39 +27,65 @@ const ROOT = '/';
 class Router {
     private routes: Route[];
     private server: http.Server;
+    private globalMiddlewares: Handler[];
 
     constructor() {
         this.routes = [];
+        this.globalMiddlewares = [];
         this.server = http.createServer(async (req: IncomingMessage, res: ServerResponse) => {
             req.params = {};
-            this.handleRequest(req, res);
+            await this.handleRequest(req, res);
         });
     }
+
+    public bodyParser: Handler = (req: IncomingMessage, res: ServerResponse, next: () => void) => {
+        let body = '';
+
+        req.on('data', chunk => {
+            body += chunk.toString();
+        });
+
+        req.on('end', () => {
+            if (body) {
+                try {
+                    req.body = JSON.parse(body);
+                    console.log("Parsed Body:", req.body);
+                } catch (error) {
+                    console.warn("Invalid JSON, proceeding with empty body");
+                    req.body = {};
+                }
+            } else {
+                req.body = {};
+            }
+            next();
+        });
+
+        req.on('error', () => {
+            res.writeHead(400, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ title: "Bad Request", message: "Error processing body" }));
+        });
+    };
 
     startServer(port: number, cp?: () => void) {
         this.server.listen(port, cp);
     }
 
-    /**
-     * 
-     * @param url: string
-     * @param handler: Handler | Router
-     */
-    use(url: string, handler: Handler): void;
     use(handler: Handler): void;
+    use(url: string, handler: Handler): void;
     use(router: Router): void;
     use(url: string, router: Router): void;
     use(arg1: string | Handler | Router, arg2?: Handler | Router): void {
         if (typeof arg1 === 'string' && arg2) {
             if (arg2 instanceof Router) {
                 this.set(MATCH_ALL_METHOD, arg1, arg2);
-            }
-            else {
+            } else {
+                this.globalMiddlewares.push(arg2);
                 this.set(MATCH_ALL_METHOD, arg1, [arg2]);
             }
         } else if (arg1 instanceof Router) {
             this.set(MATCH_ALL_METHOD, ROOT, arg1);
         } else if (typeof arg1 === 'function') {
+            this.globalMiddlewares.push(arg1);
             this.set(MATCH_ALL_METHOD, ROOT, [arg1]);
         }
     }
@@ -89,43 +115,68 @@ class Router {
         let index = 0;
         const next = async () => {
             if (index < handlers.length) {
+                if (res.writableEnded) return;
                 const handler = handlers[index++];
-                await handler(req, res, next);
+                try {
+                    await handler(req, res, next);
+                } catch (error) {
+                    console.error("Error in handler:", error);
+                    res.writeHead(500, { 'Content-Type': 'text/plain' });
+                    res.end('Internal Server Error');
+                }
+            } else {
+               
+                if (!res.writableEnded) {
+                    res.writeHead(404, { 'Content-Type': 'text/plain' });
+                    res.end('Not Found');
+                }
             }
         };
         await next();
     }
 
-    private matchPrefix(routeUrl: string, req: IncomingMessage): boolean {
-        const routeUrlPath = routeUrl.split("/");
-        const reqUrlPath = req.url?.split("/") || [];
+    private async handleRequest(req: IncomingMessage, res: ServerResponse) {
+        const methodHandlers: Array<Handler> = [];
 
-        if (routeUrlPath.length > reqUrlPath.length) return false;
-
-        for (let i = 0; i < routeUrlPath.length; i++) {
-            if (routeUrlPath[i][0] === ':') {
-                req.params[routeUrlPath[i].slice(1)] = reqUrlPath[i];
-                continue;
+        for (const route of this.routes) {
+            if (RegExp(route.method).test(req.method ?? "GET")) {
+                if (this.matchUrl(route.url, req)) {
+                    if (!(route.handler instanceof Router)) {
+                        methodHandlers.push(...this.globalMiddlewares, ...route.handler as Array<Handler>);
+                    } else {
+                        req.url = req.url?.slice(route.url.length) || ROOT;
+                        await route.handler.handleRequest(req, res);
+                    }
+                }
             }
-            if (routeUrlPath[i] !== reqUrlPath[i]) return false;
         }
-        return true;
+
+        if (methodHandlers.length > 0) {
+            await this.runHandlers(methodHandlers, req, res);
+        } else {
+            if (!res.writableEnded) {
+                res.writeHead(404, { 'Content-Type': 'text/plain' });
+                res.end('Not Found');
+            }
+        }
     }
 
-    private async handleRequest(req: IncomingMessage, res: ServerResponse) {
-        this.routes.forEach(async (route) => {
-            if (RegExp(route.method).test(req.method ?? "GET") && this.matchPrefix(route.url, req)) {
-                if (route.handler instanceof Router) {
-                    req.url = req.url?.slice(route.url.length) || ROOT;
-                    await route.handler.handleRequest(req, res);
-                }
-                else {
-                    await this.runHandlers(route.handler, req, res);
-                }
+    private matchUrl(url: string, req: IncomingMessage): boolean {
+        const urlPath = url.split("/");
+        const reqUrlPath = req.url?.split("/") || [];
+
+        if (urlPath.length !== reqUrlPath.length) return false;
+
+        for (let i = 0; i < urlPath.length; i++) {
+            if (urlPath[i][0] === ':') {
+                req.params[urlPath[i].slice(1)] = reqUrlPath[i];
+                continue;
             }
-        });
+            if (urlPath[i] !== reqUrlPath[i]) return false;
+        }
+        return true;
     }
 }
 
 export default Router;
-export {Handler, IncomingMessage}
+export { Handler, IncomingMessage }

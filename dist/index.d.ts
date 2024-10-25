@@ -11,9 +11,7 @@ declare module 'http' {
         params: {
             [key: string]: string;
         };
-        body: {
-            [key: string]: any;
-        };
+        body: any;
     }
 }
 interface Route {
@@ -24,15 +22,12 @@ interface Route {
 declare class Router {
     private routes;
     private server;
+    private globalMiddlewares;
     constructor();
+    bodyParser: Handler;
     startServer(port: number, cp?: () => void): void;
-    /**
-     *
-     * @param url: string
-     * @param handler: Handler | Router
-     */
-    use(url: string, handler: Handler): void;
     use(handler: Handler): void;
+    use(url: string, handler: Handler): void;
     use(router: Router): void;
     use(url: string, router: Router): void;
     private set;
@@ -41,8 +36,8 @@ declare class Router {
     put(url: string, ...handlers: Array<Handler>): void;
     delete(url: string, ...handlers: Array<Handler>): void;
     private runHandlers;
-    private matchPrefix;
     private handleRequest;
+    private matchUrl;
 }
 
 export { type Endpoint, type Handler, type Route, Router as default };

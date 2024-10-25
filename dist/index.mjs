@@ -26,10 +26,35 @@ var MATCH_ALL_METHOD = ".*";
 var ROOT = "/";
 var Router = class _Router {
   constructor() {
+    this.bodyParser = (req, res, next) => {
+      let body = "";
+      req.on("data", (chunk) => {
+        body += chunk.toString();
+      });
+      req.on("end", () => {
+        if (body) {
+          try {
+            req.body = JSON.parse(body);
+            console.log("Parsed Body:", req.body);
+          } catch (error) {
+            console.warn("Invalid JSON, proceeding with empty body");
+            req.body = {};
+          }
+        } else {
+          req.body = {};
+        }
+        next();
+      });
+      req.on("error", () => {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ title: "Bad Request", message: "Error processing body" }));
+      });
+    };
     this.routes = [];
+    this.globalMiddlewares = [];
     this.server = http.createServer((req, res) => __async(this, null, function* () {
       req.params = {};
-      this.handleRequest(req, res);
+      yield this.handleRequest(req, res);
     }));
   }
   startServer(port, cp) {
@@ -40,11 +65,13 @@ var Router = class _Router {
       if (arg2 instanceof _Router) {
         this.set(MATCH_ALL_METHOD, arg1, arg2);
       } else {
+        this.globalMiddlewares.push(arg2);
         this.set(MATCH_ALL_METHOD, arg1, [arg2]);
       }
     } else if (arg1 instanceof _Router) {
       this.set(MATCH_ALL_METHOD, ROOT, arg1);
     } else if (typeof arg1 === "function") {
+      this.globalMiddlewares.push(arg1);
       this.set(MATCH_ALL_METHOD, ROOT, [arg1]);
     }
   }
@@ -69,41 +96,64 @@ var Router = class _Router {
       let index = 0;
       const next = () => __async(this, null, function* () {
         if (index < handlers.length) {
+          if (res.writableEnded) return;
           const handler = handlers[index++];
-          yield handler(req, res, next);
+          try {
+            yield handler(req, res, next);
+          } catch (error) {
+            console.error("Error in handler:", error);
+            res.writeHead(500, { "Content-Type": "text/plain" });
+            res.end("Internal Server Error");
+          }
+        } else {
+          if (!res.writableEnded) {
+            res.writeHead(404, { "Content-Type": "text/plain" });
+            res.end("Not Found");
+          }
         }
       });
       yield next();
     });
   }
-  matchPrefix(routeUrl, req) {
-    var _a;
-    const routeUrlPath = routeUrl.split("/");
-    const reqUrlPath = ((_a = req.url) == null ? void 0 : _a.split("/")) || [];
-    if (routeUrlPath.length > reqUrlPath.length) return false;
-    for (let i = 0; i < routeUrlPath.length; i++) {
-      if (routeUrlPath[i][0] === ":") {
-        req.params[routeUrlPath[i].slice(1)] = reqUrlPath[i];
-        continue;
-      }
-      if (routeUrlPath[i] !== reqUrlPath[i]) return false;
-    }
-    return true;
-  }
   handleRequest(req, res) {
     return __async(this, null, function* () {
-      this.routes.forEach((route) => __async(this, null, function* () {
-        var _a, _b;
-        if (RegExp(route.method).test((_a = req.method) != null ? _a : "GET") && this.matchPrefix(route.url, req)) {
-          if (route.handler instanceof _Router) {
-            req.url = ((_b = req.url) == null ? void 0 : _b.slice(route.url.length)) || ROOT;
-            yield route.handler.handleRequest(req, res);
-          } else {
-            yield this.runHandlers(route.handler, req, res);
+      var _a, _b;
+      const methodHandlers = [];
+      for (const route of this.routes) {
+        if (RegExp(route.method).test((_a = req.method) != null ? _a : "GET")) {
+          if (this.matchUrl(route.url, req)) {
+            if (!(route.handler instanceof _Router)) {
+              methodHandlers.push(...this.globalMiddlewares, ...route.handler);
+            } else {
+              req.url = ((_b = req.url) == null ? void 0 : _b.slice(route.url.length)) || ROOT;
+              yield route.handler.handleRequest(req, res);
+            }
           }
         }
-      }));
+      }
+      if (methodHandlers.length > 0) {
+        yield this.runHandlers(methodHandlers, req, res);
+      } else {
+        if (!res.writableEnded) {
+          res.writeHead(404, { "Content-Type": "text/plain" });
+          res.end("Not Found");
+        }
+      }
     });
+  }
+  matchUrl(url, req) {
+    var _a;
+    const urlPath = url.split("/");
+    const reqUrlPath = ((_a = req.url) == null ? void 0 : _a.split("/")) || [];
+    if (urlPath.length !== reqUrlPath.length) return false;
+    for (let i = 0; i < urlPath.length; i++) {
+      if (urlPath[i][0] === ":") {
+        req.params[urlPath[i].slice(1)] = reqUrlPath[i];
+        continue;
+      }
+      if (urlPath[i] !== reqUrlPath[i]) return false;
+    }
+    return true;
   }
 };
 var src_default = Router;
