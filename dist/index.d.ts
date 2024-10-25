@@ -16,19 +16,33 @@ declare module 'http' {
         };
     }
 }
+interface Route {
+    method: string;
+    url: string;
+    handler: Router | Array<Handler>;
+}
 declare class Router {
     private routes;
-    constructor(routers?: Router[]);
-    use(req: IncomingMessage, res: ServerResponse): Promise<void>;
-    addMiddleware(middleware: Handler): void;
-    private runHandlers;
-    private match;
+    private server;
+    constructor();
+    startServer(port: number, cp?: () => void): void;
+    /**
+     *
+     * @param url: string
+     * @param handler: Handler | Router
+     */
+    use(url: string, handler: Handler): void;
+    use(handler: Handler): void;
+    use(router: Router): void;
+    use(url: string, router: Router): void;
     private set;
     get(url: string, ...handlers: Array<Handler>): void;
     post(url: string, ...handlers: Array<Handler>): void;
     put(url: string, ...handlers: Array<Handler>): void;
     delete(url: string, ...handlers: Array<Handler>): void;
-    startServer(port: number): void;
+    private runHandlers;
+    private matchPrefix;
+    private handleRequest;
 }
 
-export { type Endpoint, type Handler, Router as default };
+export { type Endpoint, type Handler, type Route, Router as default };
