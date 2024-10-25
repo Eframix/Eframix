@@ -3,9 +3,16 @@ import * as http from 'http';
 
 type Handler = (req: IncomingMessage, res: ServerResponse, next: () => void) => void;
 
-interface Endpoint {
+export interface Endpoint {
     url: string;
     handlers: Array<Handler>;
+}
+
+declare module 'http' {
+    interface IncomingMessage {
+        params: { [key: string]: string };
+        body: { [key: string]: any };
+    }
 }
 
 class Router {
@@ -34,7 +41,6 @@ class Router {
 
     public addMiddleware(middleware: Handler) {
         for (const route of this.routes) {
-            if (route[0] === "GET") continue;
             route[1].forEach((endPoint) => {
                 endPoint.handlers.unshift(middleware);
             });
@@ -105,3 +111,4 @@ class Router {
 }
 
 export default Router;
+export {Handler, IncomingMessage}

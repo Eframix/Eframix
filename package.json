@@ -1,13 +1,16 @@
 {
   "name": "express-minimal",
-  "version": "1.0.11",
+  "version": "1.0.18",
   "description": "A minimalistic Express-like framework for Node.js",
-  "main": "dist/index",
-  "types": "types/index.d.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "test": "echo \"No tests specified\" && exit 0"
+    "build": "tsup",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "express",
@@ -18,9 +21,8 @@
   "author": "Efraim Nabil",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^22.7.9"
-  },
-  "dependencies": {
+    "@types/node": "^22.7.9",
+    "tsup": "^8.3.0",
     "typescript": "^5.6.3"
   }
 }
