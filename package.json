@@ -1,6 +1,6 @@
 {
   "name": "express-minimal",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "description": "A minimalistic Express-like framework for Node.js",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
