@@ -4,35 +4,20 @@ on:
   push:
     branches:
       - main
-
 jobs:
-  build-and-publish:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Node
+        uses: actions/setup-node@v2
         with:
-          node-version: '18'
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Build Package
-        run: npm run build
-
-      - name: Publish to npm
-        uses: actions/upload-artifact@v3
-        with:
-          name: npm-package
-          path: dist/
-
-      - name: Create npm Release
-        run: |
-          npm publish --access public
-          echo "## npm Package Published" >> $GITHUB_STEP_SUMMARY
+          node-version: '14.x'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Install dependencies and build 🔧
+        run: npm ci && npm run build
+      - name: Publish package on NPM 📦
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        
