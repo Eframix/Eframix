@@ -111,6 +111,10 @@ class Router {
         this.set("DELETE", url, handlers);
     }
 
+    patch(url: string, ...handlers: Array<Handler>): void {
+        this.set("PATCH", url, handlers);
+    }
+
     private async runHandlers(handlers: Array<Handler>, req: IncomingMessage, res: ServerResponse) {
         let index = 0;
         const next = async () => {
