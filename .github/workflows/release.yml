@@ -20,8 +20,8 @@ jobs:
       - name: Build Package
         run: npm run build
 
+      - name: Set npm Auth Token
+        run: npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
+
       - name: Create npm Release
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          npm publish
+        run: npm publish
