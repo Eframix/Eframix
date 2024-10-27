@@ -35,6 +35,7 @@ declare class Router {
     post(url: string, ...handlers: Array<Handler>): void;
     put(url: string, ...handlers: Array<Handler>): void;
     delete(url: string, ...handlers: Array<Handler>): void;
+    patch(url: string, ...handlers: Array<Handler>): void;
     private runHandlers;
     private handleRequest;
     private matchUrl;

@@ -125,6 +125,9 @@ var Router = class _Router {
   delete(url, ...handlers) {
     this.set("DELETE", url, handlers);
   }
+  patch(url, ...handlers) {
+    this.set("PATCH", url, handlers);
+  }
   runHandlers(handlers, req, res) {
     return __async(this, null, function* () {
       let index = 0;
