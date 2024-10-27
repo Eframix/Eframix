@@ -1,10 +1,9 @@
-# express-minimal
+# Eframix
 
-![NPM Version](https://img.shields.io/npm/v/express-minimal)
-![NPM Downloads](https://img.shields.io/npm/dy/express-minimal)
-![NPM Type Definitions](https://img.shields.io/npm/types/express-minimal)
-![NPM License](https://img.shields.io/npm/l/express-minimal)
-
+![NPM Version](https://img.shields.io/npm/v/eframix)
+![NPM Downloads](https://img.shields.io/npm/dy/eframix)
+![NPM Type Definitions](https://img.shields.io/npm/types/eframix)
+![NPM License](https://img.shields.io/npm/l/eframix)
 
 A minimalistic [Node.js](https://nodejs.org/en) framework inspired by Express.js, offering core routing, middleware, and JSON body parsing features with zero dependencies. Ideal for lightweight HTTP server applications.
 
@@ -17,16 +16,15 @@ A minimalistic [Node.js](https://nodejs.org/en) framework inspired by Express.js
 - [Contributing](#contributing)
 - [Technical Committee (TC)](#technical-committee-tc)
 - [License](#license)
-<!-- - [Docs & Community](#docs--community) -->
 
 ---
 
 ## Installation
 
-Install `express-minimal` from npm:
+Install `eframix` from npm:
 
 ```bash
-npm install express-minimal
+npm install eframix
 ```
 
 ## Features
@@ -35,18 +33,13 @@ npm install express-minimal
 - **Middleware**: Add global and route-specific middleware.
 - **Body Parser**: Built-in JSON body parser for handling incoming request data.
 - **Lightweight**: Minimal footprint, built on Node's HTTP module for efficient handling.
-  
-<!-- ## Docs & Community
-
-- **Documentation**: For detailed usage and examples, please refer to the [API documentation](https://www.npmjs.com/package/express-minimal).
-- **Community Support**: Join discussions and get help by visiting our GitHub repository’s issues and discussions sections. -->
 
 ## Quick Start
 
 Get started with a basic setup:
 
 ```typescript
-import Router from 'express-minimal';
+import Router from 'eframix';
 
 const app = new Router();
 
@@ -54,7 +47,7 @@ app.use(app.bodyParser);
 
 app.get("/", (req, res) => {
     res.writeHead(200, { "Content-Type": "text/plain" });
-    res.end("Welcome to express-minimal!");
+    res.end("Welcome to Eframix!");
 });
 
 app.post("/data", (req, res) => {
@@ -71,11 +64,11 @@ app.startServer(3000, () => {
 
 ### Basic Movie API
 
-Below is a sample structure for a movie API using `express-minimal`.
+Below is a sample structure for a movie API using `eframix`.
 
 ```typescript
 import { addMovie, getAllMovies, getMovieByID, updateMovie, deleteMovie } from './routes/movieRoutes';
-import Router from 'express-minimal';
+import Router from 'eframix';
 
 const app = new Router();
 
@@ -95,20 +88,19 @@ app.startServer(5001, () => {
 ## Contributing
 
 We welcome contributions from the community! To get started:
-1. Fork the repository on [GitHub](https://github.com/efraimnabil/express-minimal).
+1. Fork the repository on [GitHub](https://github.com/efraimnabil/eframix).
 2. Create a branch with your feature or fix.
 3. Open a pull request with a detailed description.
 
 Please follow the coding standards and conventions in the repository.
 
-
 ## Technical Committee (TC)
 
-The Technical Committee (TC) oversees the direction of `express-minimal`. Current members include:
+The Technical Committee (TC) oversees the direction of `eframix`. Current members include:
 - [Efraim Nabil](https://github.com/efraimnabil)
 - [Mina Magdy](https://github.com/MiinaMagdy)
 
-For more information on contributing, please visit our [GitHub](https://github.com/efraimnabil/express-minimal) repository.
+For more information on contributing, please visit our [GitHub](https://github.com/efraimnabil/eframix) repository.
 
 ## License
 
