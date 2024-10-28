@@ -11,6 +11,7 @@ export interface Endpoint {
 declare module 'http' {
     interface IncomingMessage {
         params: { [key: string]: string };
+        query: { [key: string]: string };
         body: any;
     }
 }
@@ -34,6 +35,7 @@ class Router {
         this.globalMiddlewares = [];
         this.server = http.createServer(async (req: IncomingMessage, res: ServerResponse) => {
             req.params = {};
+            req.query = {};
             await this.handleRequest(req, res);
         });
     }
@@ -91,7 +93,7 @@ class Router {
     }
 
     private set(method: string, url: string, handlers: Router | Array<Handler>): void {
-        if (url.at(-1) === ROOT) url = url.slice(0, -1);
+        if (url.at(-1) === ROOT && url.length > 1) url = url.slice(0, -1);
         this.routes.push({ method, url, handler: handlers });
     }
 
@@ -167,7 +169,8 @@ class Router {
 
     private matchUrl(url: string, req: IncomingMessage): boolean {
         const urlPath = url.split("/");
-        const reqUrlPath = req.url?.split("/") || [];
+        const reqQuerySplit = req.url?.split("?", 2) || [];
+        const reqUrlPath = reqQuerySplit[0].split("/") || [];
 
         if (urlPath.length !== reqUrlPath.length) return false;
 
@@ -177,6 +180,13 @@ class Router {
                 continue;
             }
             if (urlPath[i] !== reqUrlPath[i]) return false;
+        }
+        if (reqQuerySplit.length > 1) {
+            const queries = reqQuerySplit[1].split('&');
+            queries.forEach((query) => {
+                const [key, value] = query.split('=', 2);
+                req.query[key] = value;
+            });
         }
         return true;
     }
